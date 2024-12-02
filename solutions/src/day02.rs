@@ -32,7 +32,7 @@ fn check_report(report: &[i32]) -> (bool, Vec<usize>) {
         match diff.cmp(&0) {
             Ordering::Less => ascending = true,
             Ordering::Greater => descending = true,
-            Ordering::Equal => ()
+            Ordering::Equal => (),
         };
 
         // Mark the error location for later.
@@ -75,7 +75,7 @@ fn safety(reports: Vec<Vec<i32>>) -> (i32, i32) {
 
     for report in reports {
         let result: (bool, Vec<usize>) = check_report(&report);
-        if result.0  {
+        if result.0 {
             // If the report is safe, increment by 1.
             safe_1 += 1;
         } else {
