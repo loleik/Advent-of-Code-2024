@@ -7,7 +7,7 @@ pub struct InputData {
 }
 
 pub struct NonSplitData {
-    pub list: Vec<String>
+    pub list: Vec<String>,
 }
 
 pub fn parse_to_vec_nosplit(path: &str) -> NonSplitData {
@@ -20,9 +20,7 @@ pub fn parse_to_vec_nosplit(path: &str) -> NonSplitData {
 
     let lines: Vec<String> = reader
         .lines()
-        .map(|line|
-            line.expect("Line error")
-        )
+        .map(|line| line.expect("Line error"))
         .collect();
 
     NonSplitData { list: lines }

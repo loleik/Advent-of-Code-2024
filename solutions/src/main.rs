@@ -30,10 +30,12 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
-    use libs::read_input::{InputData, NonSplitData};
+    use libs::read_input::NonSplitData;
     use solutions::day03;
 
     // For now I will just do basic unit testing with the example inputs.
+
+    // To do: Unit tests for day 01 and 02
 
     // Day 03
     #[test]
