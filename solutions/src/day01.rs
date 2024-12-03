@@ -75,11 +75,13 @@ fn part2(lists: &(Vec<i32>, Vec<i32>)) -> i32 {
 }
 
 // This just brings everything together and prints the answers.
-pub fn wrapper(input: &InputData) {
+pub fn wrapper(input: &InputData) -> (i32, i32) {
     let lists: (Vec<i32>, Vec<i32>) = handle_input(input);
     let part1_result: i32 = part1(&lists, 0, 0);
     let part2_result: i32 = part2(&lists);
 
     println!("Part 1: {part1_result}");
     println!("Part 2: {part2_result}");
+
+    (part1_result, part2_result)
 }

@@ -16,6 +16,7 @@ fn refine_input(input: &InputData) -> Vec<Vec<i32>> {
 
     reports
 }
+
 // Function for checking the safety of a given report.
 fn check_report(report: &[i32]) -> (bool, Vec<usize>) {
     // Booleans for condition checking
@@ -97,9 +98,11 @@ fn safety(reports: Vec<Vec<i32>>) -> (i32, i32) {
     (safe_1, safe_1 + safe_2)
 }
 
-pub fn wrapper(input: &InputData) {
+pub fn wrapper(input: &InputData) -> (i32, i32) {
     let reports: Vec<Vec<i32>> = refine_input(input);
     let results: (i32, i32) = safety(reports);
     println!("Part 1: {}", results.0);
     println!("Part 2: {}", results.1);
+
+    results
 }
