@@ -13,4 +13,4 @@ Input is expected within the directory `input` relative to the root of the crate
 `input_day01`, `input_day10`, etc.
 
 ## To do
-+ Unit tests for day 1, 2, 4, 5, 6. Will be done on a day where I don't struggle with the solution.
++ Unit tests for day 1, 2, 4, 5, 6, 7.
