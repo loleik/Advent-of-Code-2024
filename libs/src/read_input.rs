@@ -10,10 +10,41 @@ pub struct NonSplitData {
     pub list: Vec<String>,
 }
 
+#[derive(Clone)]
 pub struct VecChars {
     pub height: usize,
     pub width: usize,
     pub flat_board: Vec<char>,
+}
+
+// No padding, will correct properly later
+pub fn parse_to_vec_chars_2(path: &str) -> VecChars {
+    let file = match File::open(path) {
+        Ok(value) => value,
+        Err(e) => panic!("Error: {e}"),
+    };
+
+    let reader: BufReader<File> = BufReader::new(file);
+
+    let board: Vec<Vec<char>> = reader
+        .lines()
+        .map(|line| line.expect("Line error").chars().collect::<Vec<_>>())
+        .collect();
+
+    let width = board[0].len();
+
+    let height = board.len();
+
+    let flat_board: Vec<char> = board
+        .iter()
+        .flat_map(|line| line.iter().map(|c| c.to_owned()))
+        .collect();
+
+    VecChars {
+        height: height,
+        width: width,
+        flat_board: flat_board,
+    }
 }
 
 // I've really overcomplicated this nightmarish function
