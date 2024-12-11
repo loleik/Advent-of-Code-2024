@@ -1,6 +1,6 @@
 use libs::read_input::VecChars;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, iter::MapWhile};
 
 // Struct for storing the topographic map information.
 struct TopographicMap {
@@ -34,61 +34,77 @@ fn parse(input: VecChars) -> TopographicMap {
 
     TopographicMap::new(parsed, input.height, input.width, trailheads, peaks)
 }
-// I am struggling quite a bit today for some reason.
-fn part1(input: TopographicMap) {
-    fn neighbours(index: usize, height: usize, width: usize) -> Vec<usize> {
-        let mut result = Vec::new();
-        let row = index / width;
-        let col = index % width;
 
-        if row > 0 { result.push(index - width); }
-        if row < height - 1 { result.push(index + width); }
-        if col > 0 { result.push(index - 1); }
-        if col < width  - 1 { result.push(index + 1); }
-
-        result
-    }
-
-    fn dfs(
-        input: &TopographicMap, 
-        index: usize, 
-        target: u32, 
-        visited: &mut HashSet<usize>
-    ) -> i32 {
-        println!("visiting: {} {}", index, input.map[index]);
-        println!("target: {}", target);
-
-        if input.map[index] != target { 
-            println!("nope");
-            return 0; 
+fn print_map(input: &TopographicMap) {
+    for row in 0..input.map_h {
+        for col in 0..input.map_w {
+            let i: usize = row * input.map_w + col;
+            if input.th.contains(&i) {
+                print!("\x1b[31m{:3}\x1b[0m ", input.map[row * input.map_w + col]);
+            } else if input.p.contains(&i) {
+                print!("\x1b[32m{:3}\x1b[0m ", input.map[row * input.map_w + col]);
+            } else {
+                print!("{:3} ", input.map[row * input.map_w + col]);
+            }
         }
+        println!();
+    }
+    println!();
+}
 
-        if input.map[index] == 9 { return 1; }
+// I am struggling quite a bit today for some reason.
+fn part1(input: TopographicMap) -> i32{
+    print_map(&input);
 
-        visited.insert(index);
+    if input.th.len() == 0 { return 0 }
+    let mut count: i32 = 0;
+    let mut neighbours: Vec<Vec<usize>> = Vec::new();
 
-        let mut paths: i32 = 0;
-        for neighbour in neighbours(index, input.map_h, input.map_w) {
-            if !visited.contains(&neighbour) {
-                paths += dfs(&input, neighbour, target + 1, visited);
+    for x in &input.th {
+        if input.map[*x] == 9 { return 1 }
+
+        let row: usize = x / input.map_w;
+        let col: usize = x % input.map_w;
+
+        let mut current_n: Vec<usize> = Vec::new();
+
+        if row > 0 {
+            if input.map[*x] + 1 == input.map[x - input.map_w] {
+                current_n.push(x - input.map_w);
+            }
+        }
+        if row < input.map_h - 1 {
+            if input.map[*x] + 1 == input.map[x + input.map_w] {
+                current_n.push(x + input.map_w);
+            }
+        }
+        if col > 0 {
+            if input.map[*x]+ 1 == input.map[x - 1] {
+                current_n.push(x - 1);
+            }
+        }
+        if col < input.map_w - 1 {
+            if input.map[*x] + 1 == input.map[x + 1] {
+                current_n.push(x + 1);
             }
         }
 
-        visited.remove(&index);
-
-        paths
+        neighbours.push(current_n);
     }
 
-    let result: Vec<i32> = input.th.iter().map(|i| {
-            let mut visited: HashSet<usize> = HashSet::new();
-            dfs(&input, *i, 0, &mut visited)
-        }).collect();
+    for n in neighbours {
+        count += part1(TopographicMap::new(
+            input.map.clone(), input.map_h, input.map_w, n, input.p.clone()
+        ));
+    }
 
-    println!("{result:?}")
+    count
 }
 
 pub fn wrapper(input: VecChars) {
     let topography: TopographicMap = parse(input);
 
-    part1(topography);
+    let part1_result: i32 = part1(topography);
+
+    println!("Part 1: {part1_result}");
 }
