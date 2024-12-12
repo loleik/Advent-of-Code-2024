@@ -1,7 +1,8 @@
 use libs::read_input::VecChars;
 
+use crossterm::{ExecutableCommand, style::{Print, SetForegroundColor, Color}};
 use indicatif::{ProgressBar, ProgressStyle, TermLike};
-use std::io::{self, Write};
+use std::{fmt::format, io::{self, stdout, Write}};
 use console::{pad_str, Alignment, Term};
 use std::thread;
 use std::time::Duration;
@@ -145,6 +146,8 @@ fn defrag_blocks(input: &VecChars) -> Vec<(i32, String)> {
     let mut expanded: Vec<(i32, String)> = expand(&input.flat_board); // Expand.
     let blocks: Vec<(usize, usize)> = find_blocks(&expanded); // Blocks.
 
+    display_filesystem(&expanded, find_blocks(&expanded));
+
     // Set up terminal and progress bar again.
     let term = Term::stdout();
     let width = term.width() as usize;
@@ -208,8 +211,54 @@ fn defrag_blocks(input: &VecChars) -> Vec<(i32, String)> {
     // Print the filesystem checksum.
     println!("Filesystem Checksum: {}", checksum(&expanded));
 
+    display_filesystem(&expanded, find_blocks(&expanded));
+
     // Return the new filesystem layout.
     expanded
+}
+
+fn display_filesystem(input: &Vec<(i32, String)>, blocks: Vec<(usize, usize)>) {
+    let mut i: usize = 0;
+    let mut dots: bool = false;
+    let mut dots_len: usize = 0;
+
+    while i < input.len() {
+        let c: &String  = &input[i].1;
+
+        if c == "." && !dots {
+            stdout().execute(Print(" [.]")).unwrap();
+            stdout().flush().unwrap();
+
+            i += 1;
+            dots_len += 1;
+            dots = true;
+        } else if c == "." && dots {
+            i += 1;
+            dots_len += 1;
+        } else {
+            if dots {
+                stdout().execute(Print(format!(":({dots_len})"))).unwrap();
+            }
+
+            for block in &blocks {
+                if i >= block.0 && i <= block.1 {
+                    stdout().execute(Print(format!(" [{c}] "))).unwrap();
+                    stdout().flush().unwrap();
+
+                    i = block.1 + 1;
+                    break;
+                }
+            }
+
+            if c != "." {
+                dots_len = 0;
+                dots = false
+            } else {
+                i += 1;
+            }
+        }
+    }
+    println!();
 }
 
 // Calculates the checksum.
