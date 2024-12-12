@@ -1,7 +1,5 @@
 use libs::read_input::VecChars;
 
-use std::{collections::HashSet, iter::MapWhile};
-
 // Struct for storing the topographic map information.
 struct TopographicMap {
     map: Vec<u32>, // Input map.
