@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
+console = "0.15.8"
+indicatif = "0.17.9"
 libs = { path = "../libs" }
 num = "0.4.3"
 regex = "1.11.1"

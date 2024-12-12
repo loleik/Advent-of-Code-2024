@@ -1,151 +1,222 @@
 use libs::read_input::VecChars;
 
-fn expand(input: &Vec<char>) -> Vec<(i32, String)> {
-    let mut expanded: Vec<(i32, String)> = Vec::new();
-    let mut empty: bool = false;
-    let mut id_counter: i32 = 0;
+use indicatif::{ProgressBar, ProgressStyle, TermLike};
+use std::io::{self, Write};
+use console::{pad_str, Alignment, Term};
+use std::thread;
+use std::time::Duration;
 
+// Expands the input string out to a usable form.
+fn expand(input: &Vec<char>) -> Vec<(i32, String)> {
+    let mut expanded: Vec<(i32, String)> = Vec::new(); // The output variable
+    let mut empty: bool = false; // Tracks if a section is empty space.
+    let mut id_counter: i32 = 0; // Counter to add the IDs
+
+    // Loop through the whole input.
     (0..input.len()).for_each(|i| {
+        // Reset empty space tracker.
         empty = false;
+        // Grab the current character.
         let x: char = input[i];
+        // If it's divisible by 2, then its empty space. Plus 1 to account for indexes.
         if (i+1) % 2 == 0 {
             empty = true;
         }
 
+        // Loop through to the end of the current section, which is defined by the current character.
         (0..x.to_digit(10).unwrap()).for_each(|_| {
             match empty {
-                false => expanded.push((id_counter, id_counter.to_string())),
-                true => expanded.push((0, ".".to_string()))
+                false => expanded.push((id_counter, id_counter.to_string())), // Populated by data.
+                true => expanded.push((0, ".".to_string())) // Empty space.
             }
         });
 
-        if !empty { id_counter += 1 }
+        if !empty { id_counter += 1 } // Increment the ID's if not an empty space.
     });
 
-    expanded
+    expanded // Return the expanded disk, which will be used for everything.
 }
 
+// The lazy function. "Defragments" by entry not by block.
 fn defrag(input: &VecChars) -> Vec<(i32, String)> {
-    let mut expanded = expand(&input.flat_board);
+    let mut expanded = expand(&input.flat_board); // Expand.
 
-    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-    /*for z in &expanded {
-        print!("{}", z.1);
-    }
-    println!();*/
+    let mut i: usize = 0; // The start pointer for finding empty space.
+    let mut j: usize = expanded.len() - 1; // The end pointer for finding non-empty values.
+    let initial_range: u64 = (j - i + 1) as u64; // The initial range of the loop, used for progress bar.
 
-    let mut i = 0;
-    let mut j = expanded.len() - 1;
+    // Use term to center the start message properly.
+    let term: Term = Term::stdout(); 
+    let width: usize = term.width() as usize;
+    let start: std::borrow::Cow<'_, str> = pad_str(
+        "--> LAZY DEFRAG <--", 
+        width, 
+        Alignment::Center, 
+        None
+    );
 
+    io::stdout().flush().unwrap();
+
+    // Print the start message and define the progress bar.
+    println!("{}", start);
+    let progress_bar: ProgressBar = ProgressBar::new(initial_range);
+    progress_bar.set_style(
+        ProgressStyle::default_bar()
+            .template("{msg}\n{elapsed_precise}▐{wide_bar}") // Include {msg} for the message
+            .unwrap()
+            .progress_chars("█▓░"),
+    );
+
+    progress_bar.set_message("Checking entries:");
+
+    // Loop until the pointers meet.
     while i < j {
+        // Increment i until we find empty space.
         while i < j && expanded[i].1 != ".".to_string() {
             i += 1;
+            // Update the progress bar.
+            progress_bar.set_position(initial_range - (j - i + 1) as u64);
+            // Slowed down artificially for the visuals. Not needed.
+            thread::sleep(Duration::from_nanos(10));
         }
 
+        // If i finds empty space, send out j from the end to find a character to fill it.
         while i < j && expanded[j].1 == ".".to_string() {
             j = j.saturating_sub(1);
+            progress_bar.set_position(initial_range - (j - i + 1) as u64);
         }
 
+        // If we find one, do the swap, then continue if i < j.
         if i < j {
-            /*for z in 0..expanded.len() {
-                if z == i {
-                    print!("\x1b[41m\x1b[30m{}\x1b[0m", expanded[z].1);
-                } else if z == j {
-                    print!("\x1b[42m\x1b[30m{}\x1b[0m", expanded[z].1);
-                } else {
-                    print!("\x1b[1m{}\x1b[0m", expanded[z].1);
-                }
-            }
-            println!();*/
             expanded.swap(i, j);
             i += 1;
-            j = j.saturating_sub(1)
+            j = j.saturating_sub(1);
+            progress_bar.set_position(initial_range - (j - i + 1) as u64);
+            thread::sleep(Duration::from_nanos(10));
         }
     }
 
-    /*for z in &expanded {
-        print!("{}", z.1);
-    }
-    println!();*/
+    // Finish message.
+    progress_bar.finish_with_message("All entries checked!");
 
-    expanded
+    // Get and print the checksum.
+    println!("Filesystem Checksum: {}", checksum(&expanded));
+
+    expanded // Return the final filesystem.
 }
 
+// My method for part 2 is definitley not the fastest, but it helped me understand the problem better.
+// Locate and document all file blocks in the filesystem.
 fn find_blocks(input: &Vec<(i32, String)>) -> Vec<(usize, usize)> {
-    let mut blocks: Vec<(usize, usize)> = Vec::new();
-    let mut in_block: bool = false;
-    let mut start: usize = 0;
-    let mut i: usize = 0;
+    let mut blocks: Vec<(usize, usize)> = Vec::new(); // Block information.
+    let mut in_block: bool = false; // Tracks if we're currently traversing a block.
+    let mut start: usize = 0; // Start of the current block.
+    let mut i: usize = 0; // Index for looping.
 
+    // Looop through the whole filesystem.
     while i < input.len() {
+        // If we find a non-empty character and aren't already in a block, start one.
         if input[i].1 != ".".to_string() && !in_block {
             start = i;
             in_block = true;
         }
 
+        // If we reach the end of a block, store the start and end, and exit the block.
         if i != input.len() - 1 && input[i].1 != input[i+1].1 && input[i].1 != ".".to_string() {
             blocks.insert(0, (start, i));
             in_block = false;
             i += 1;
+        // If we're at the end of the filesystem, check backwards to avoid indexing out of bounds.
         } else if i == input.len() - 1 && input[i - 1] == input[i] {
             blocks.insert(0, (start, i));
             break;
+        // Otherwise continue traversing the block.
         } else {
             i += 1;
         }
     }
 
-    blocks
+    // Blocks are sorted in reverse to simulate searching from the end of the filesystem, this is to accommodate for how the problem is set up.
+    blocks // Return blocks.
 }
 
+// Defragmenting by block instead of entry.
 fn defrag_blocks(input: &VecChars) -> Vec<(i32, String)> {
-    let mut expanded: Vec<(i32, String)> = expand(&input.flat_board);
-    let blocks: Vec<(usize, usize)> = find_blocks(&expanded);
+    let mut expanded: Vec<(i32, String)> = expand(&input.flat_board); // Expand.
+    let blocks: Vec<(usize, usize)> = find_blocks(&expanded); // Blocks.
 
-    for block in &blocks {
-        let size: usize = block.1 - block.0 + 1;
-        let mut i: usize = 0;
-        
-        //println!("{block:?} {size}");
+    // Set up terminal and progress bar again.
+    let term = Term::stdout();
+    let width = term.width() as usize;
+    let start = pad_str(
+        "--> FULL DEFRAG <--", 
+        width, 
+        Alignment::Center, 
+        None
+    );
 
+    io::stdout().flush().unwrap();
 
-        /*for x in &expanded {
-            print!("{}", x.1)
-        }
-        println!();*/
+    println!("{}", start);
+    // Only difference is we have a clear endpoint here for the progress bar, which is the amount of blocks.
+    let progress_bar = ProgressBar::new(blocks.len() as u64);
+    progress_bar.set_style(
+        ProgressStyle::default_bar()
+            .template("{msg}\n{elapsed_precise}▐{wide_bar}") // Include {msg} for the message
+            .unwrap()
+            .progress_chars("█▓░"),
+    );
 
-        while i < block.0 {
-            while i < block.0 && expanded[i].1 != ".".to_string() {
+    // Loop through all blocks on the filesystem.
+    for b in 0..blocks.len() {
+        // Update the current block at each step.
+        progress_bar.set_message(format!("Checking Blocks: {}/{}", b + 1, blocks.len()));
+
+        let size: usize = blocks[b].1 - blocks[b].0 + 1; // Current block size.
+        let mut i: usize = 0; // Set index of pointer for finding empty space.
+
+        // Send the initial pointer out towards the start of the block.
+        while i < blocks[b].0 {
+            // Increment until there is free space.
+            while i < blocks[b].0 && expanded[i].1 != ".".to_string() {
                 i += 1;
             }
 
+            // Initialize another pointer and send it out from i to find the end of the free space block.
             let mut j: usize = i;
-            while j < block.1 && expanded[j].1 == ".".to_string() {
+            while j < blocks[b].1 && expanded[j].1 == ".".to_string() {
                 j += 1;
             }
 
-            //println!("{}", j - i);
-
+            // If the block of free space is big enough, swap the current block into it and move on to the next block.
             if j - i >= size {
-                //println!("{} : {} : {}-{}", j - i, size, i, j);
-
                 for k in 0..size {
-                    expanded.swap(i + k, block.0 + k);
+                    expanded.swap(i + k, blocks[b].0 + k);
                 }
                 break;
+            // If the current block of free space is too small, continue searching.
             } else {
                 i = j + 1;
                 continue;
             }
         }
+        progress_bar.inc(1); // Increment every time a block is processed.
     }
 
+    progress_bar.finish_with_message("All blocks checked!"); // Finished message.
+
+    // Print the filesystem checksum.
+    println!("Filesystem Checksum: {}", checksum(&expanded));
+
+    // Return the new filesystem layout.
     expanded
 }
 
-fn checksum(input: Vec<(i32, String)>) -> i64 {
+// Calculates the checksum.
+fn checksum(input: &Vec<(i32, String)>) -> i64 {
     let mut result: i64 = 0;
 
+    // For every entry, multiply the ID by the position.
     for i in 0..input.len() {
         result += (input[i].0 as i64) * (i as i64)
     }
@@ -154,10 +225,10 @@ fn checksum(input: Vec<(i32, String)>) -> i64 {
 }
 
 pub fn wrapper(input: VecChars) {
-    let part1_result: i64 = checksum(defrag(&input));
+    // Clear the terminal.
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
 
-    let part2_result: i64 = checksum(defrag_blocks(&input));
-    
-    println!("Part 1: {part1_result}");
-    println!("Part 2: {part2_result}");
+    defrag(&input);
+
+    defrag_blocks(&input);
 }
