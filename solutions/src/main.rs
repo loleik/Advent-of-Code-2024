@@ -3,7 +3,7 @@ use clap::Parser;
 use libs::read_input::{
     parse_to_vec, parse_to_vec_chars, parse_to_vec_chars_2, parse_to_vec_nosplit,
 };
-use solutions::{day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12};
+use solutions::{day01, day02, day03, day04, day05, day06, day07, day08, day09, day10, day11, day12, day13};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -52,6 +52,9 @@ fn main() {
         }
         12 => {
             day12::wrapper(parse_to_vec_chars_2("input/input_day12"));
+        }
+        13 => {
+            day13::wrapper(parse_to_vec("input/input_day13"));
         }
         _ => println!("Invalid day: {}", args.day),
     }

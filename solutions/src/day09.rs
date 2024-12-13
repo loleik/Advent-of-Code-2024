@@ -1,8 +1,8 @@
 use libs::read_input::VecChars;
 
-use crossterm::{ExecutableCommand, style::{Print, SetForegroundColor, Color}};
+use crossterm::{ExecutableCommand, style::Print};
 use indicatif::{ProgressBar, ProgressStyle, TermLike};
-use std::{fmt::format, io::{self, stdout, Write}};
+use std::io::{self, stdout, Write};
 use console::{pad_str, Alignment, Term};
 use std::thread;
 use std::time::Duration;

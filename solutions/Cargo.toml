@@ -11,5 +11,6 @@ console = "0.15.8"
 crossterm = "0.28.1"
 indicatif = "0.17.9"
 libs = { path = "../libs" }
+nalgebra = "0.33.2"
 num = "0.4.3"
 regex = "1.11.1"
