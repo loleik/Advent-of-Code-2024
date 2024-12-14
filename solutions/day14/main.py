@@ -15,7 +15,7 @@ COMMON_MONO_FONT_FILENAMES = [
 
 
 def main():
-    for i in range(100):
+    for i in range(10000):
         image = textfile_to_image(f"files/{i}.txt")
         image.save(f"images/{i}.png")
 

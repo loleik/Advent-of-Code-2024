@@ -3,7 +3,9 @@ use libs::read_input::InputData;
 use regex::Regex;
 use std::fs::File;
 use std::io::{self, Write};
+use std::usize;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug)]
 struct Robot {
@@ -60,7 +62,13 @@ fn tick(robots: &mut Vec<Robot>, secs: u32, width: i32, height: i32) {
     }
 }
 
-fn plot(width: i32, height: i32, robots: &mut Vec<Robot>, step: u32) {
+fn plot(
+    width: i32, 
+    height: i32, 
+    robots: &mut Vec<Robot>, 
+    step: u32, 
+    danger: &mut HashMap<u32, usize>
+) {
     let mut map: Vec<Cell> = vec![Cell::Empty('.'); (width * height) as usize];
 
     tick(robots, 1, width, height);
@@ -78,7 +86,7 @@ fn plot(width: i32, height: i32, robots: &mut Vec<Robot>, step: u32) {
         }
     }
 
-    /*let mut top_left: usize = 0;
+    let mut top_left: usize = 0;
     let mut top_right: usize = 0;
     for row in 0..(height / 2) {
         for col in 0..(width / 2) {
@@ -114,11 +122,13 @@ fn plot(width: i32, height: i32, robots: &mut Vec<Robot>, step: u32) {
                 _ => {}
             }
         }
-    }*/
+    }
 
-    let _ = print_out(map, width, step);
+    if step < 10000 {
+        let _ = print_out(map, width, step);
+    }
 
-    //println!("Safety Factor: {}", top_left * top_right * bot_left * bot_right);
+    danger.insert(step, top_left * top_right * bot_left * bot_right);
 }
 
 fn print_out(map: Vec<Cell>, width: i32, step: u32) -> io::Result<()> {
@@ -149,20 +159,30 @@ fn print_out(map: Vec<Cell>, width: i32, step: u32) -> io::Result<()> {
 
 pub fn wrapper(input: InputData) {
     let mut robots: Vec<Robot> = parse(&input);
+    let mut danger: HashMap<u32, usize> = HashMap::new();
     let mut i: u32 = 0;
     let total: u32 = 10000;
+    let mut x: (u32, usize) = (0, usize::MAX);
 
-    let progress_bar: ProgressBar = ProgressBar::new(total as u64);
+    /*let progress_bar: ProgressBar = ProgressBar::new(total as u64);
     progress_bar.set_style(
         ProgressStyle::default_bar()
             .template("{msg}\n{elapsed_precise}▐{wide_bar}") // Include {msg} for the message
             .unwrap()
             .progress_chars("█▓░"),
-    );
+    );*/
 
     while i < total {
-        plot(101, 103, &mut robots, i);
-        progress_bar.set_position(i as u64);
+        plot(101, 103, &mut robots, i, &mut danger);
+        //progress_bar.set_position(i as u64);
         i += 1;
     }
+
+    for level in &danger {
+        if level.1 < &x.1 && level.0 != &1325 {
+            x = (*level.0, *level.1)
+        }
+    }
+
+    println!("Second lowest danger level: {x:?} ");
 }
