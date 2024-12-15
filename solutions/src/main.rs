@@ -5,7 +5,7 @@ use libs::read_input::{
 };
 use solutions::{day01, day02, day03, day04, day05, 
                 day06, day07, day08, day09, day10, 
-                day11, day12, day13, day14,};
+                day11, day12, day13, day14, day15};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -60,6 +60,9 @@ fn main() {
         }
         14 => {
             day14::wrapper(parse_to_vec("input/input_day14"))
+        }
+        15 => {
+            day15::wrapper(parse_to_vec("input/input_day15"))
         }
         _ => println!("Invalid day: {}", args.day),
     }
