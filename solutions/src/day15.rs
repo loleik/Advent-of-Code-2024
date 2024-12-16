@@ -1,6 +1,6 @@
 use libs::read_input::InputData;
 use libs::print_inputs::print_map;
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 
 // Struct for storing warehouse information.
 #[derive(Debug)]
@@ -195,54 +195,54 @@ fn part1(input: &InputData) {
     //print_map(&warehouse.map, warehouse.h_w.0, warehouse.h_w.1);
     gps(&warehouse);
 }
-
+/*
 // I've given up on this. The part 1 code is far too messy to work for part 2. I don't know how to do it.
 fn traverse_part2(warehouse: &mut Warehouse) {
+    let boxes: HashSet<> = HashSet::new(); // Track the indexes of the start of boxes.
+
+    for i in 0..warehouse.map.len() {
+        if warehouse.map[i] == '[' { boxes.insert(i) }
+    }
+
     while !warehouse.instructions.is_empty() {
         let current: char = warehouse.instructions.pop_front().unwrap();
-
         match current {
             '^' => {
-                let n_i: usize = warehouse.robot.0 - warehouse.h_w.1;
-                match warehouse.map[n_i] {
-                    '#' => { continue }
-                    '.' => {
+                let n_i: usize = warehouse.robot.0 - warehouse.h_w.1; // Upward neighbour.
+
+                if boxes.contains(&n_i) {
+                    let mut check: usize = n_i;
+
+                    while warehouse.map[check] == '[' || warehouse.map[check] == ']' {
+                        check -= warehouse.h_w.1
+                    }
+
+                    match warehouse.map[check] {
+                        '#' => { continue } // If it's a wall, can't move, continue.
+                        '.' => {
+                            
+                        }
+                        _ => println!("Unexpected map item {} at {n_i}", warehouse.map[n_i])
+                    }
+                }
+                match warehouse.map[n_i] { // Check neighbours value.
+                    '#' => { continue } // If it's a wall, can't move just continue to next instruction.
+                    '.' => { // If its a blank space, swap the robot to the next space and continue.
                         warehouse.map.swap(n_i, warehouse.robot.0);
                         warehouse.robot = (n_i, n_i / warehouse.h_w.1, n_i % warehouse.h_w.1)
                     }
-                    '[' | ']' => {
-                        let mut check: (usize, char) = (n_i, warehouse.map[n_i]);
-                        while check.1 == '[' || check.1 ==  ']' {
-                            check.0 -= warehouse.h_w.1;
-                            check.1 = warehouse.map[check.0]
+                    'O' => { // If its a box, process it.
+                        // Check upwards until we find either a wall or empty space.
+                        let mut check: usize = n_i;
+                        while warehouse.map[check] == 'O' {
+                            check -= warehouse.h_w.1
                         }
-                        match check.1 {
-                            '#' => { continue }
-                            '.' => {
-                                let i: usize = warehouse.robot.0;
-                                let l: usize = warehouse.robot.0 - warehouse.h_w.1;
-                                let j: usize = check.0;
-                                let mut k: usize = 0;
-
-                                while j + k < i {
-
-                                    if j + warehouse.h_w.1 < i
-                                    && warehouse.map[j + warehouse.h_w.1] == ']' 
-                                    && warehouse.map[j + warehouse.h_w.1 + 1] == '[' {
-                                        warehouse.map.swap(j + warehouse.h_w.1 + 1, j + 1);
-                                        warehouse.map.swap(j + warehouse.h_w.1 + 2, j + 2);
-                                    }
-
-                                    warehouse.map.swap(j + k, j + k + warehouse.h_w.1);
-                                    if warehouse.map[j + k] == '[' {
-                                        warehouse.map.swap(j + k + 1, j + k + warehouse.h_w.1 + 1);
-                                    } else if warehouse.map[j + k] == ']' {
-                                        warehouse.map.swap(j + k - 1, j + k + warehouse.h_w.1 - 1);
-                                    }
-                                    k += warehouse.h_w.1
-                                }
-
-                                warehouse.robot = (l, l / warehouse.h_w.1, l % warehouse.h_w.1)
+                        match warehouse.map[check] {
+                            '#' => { continue } // If it's a wall, can't move, continue.
+                            '.' => { // If its an empty space, swap the first box with the first empty space, then swap the robot. Continue.
+                                warehouse.map.swap(n_i, check);
+                                warehouse.map.swap(n_i, warehouse.robot.0);
+                                warehouse.robot = (n_i, n_i / warehouse.h_w.1, n_i % warehouse.h_w.1) 
                             }
                             _ => println!("Unexpected map item {} at {n_i}", warehouse.map[n_i])
                         }
@@ -252,52 +252,8 @@ fn traverse_part2(warehouse: &mut Warehouse) {
             }
             'v' => {
                 let n_i: usize = warehouse.robot.0 + warehouse.h_w.1;
-                match warehouse.map[n_i] {
-                    '#' => { continue }
-                    '.' => {
-                        warehouse.map.swap(n_i, warehouse.robot.0);
-                        warehouse.robot = (n_i, n_i / warehouse.h_w.1, n_i % warehouse.h_w.1)
-                    }
-                    '[' | ']' => {
-                        let mut check: (usize, char) = (n_i, warehouse.map[n_i]);
-                        while check.1 == '[' || check.1 ==  ']' {
-                            check.0 += warehouse.h_w.1;
-                            check.1 = warehouse.map[check.0]
-                        }
-                        match check.1 {
-                            '#' => { continue }
-                            '.' => {
-                                let i: usize = warehouse.robot.0;
-                                let l: usize = warehouse.robot.0 + warehouse.h_w.1;
-                                let j: usize = check.0;
-                                let mut k: usize = 0;
-
-                                while j - k > i {
-
-                                    if j - warehouse.h_w.1 > i
-                                    && warehouse.map[j - warehouse.h_w.1] == ']' 
-                                    && warehouse.map[j - warehouse.h_w.1 + 1] == '[' {
-                                        warehouse.map.swap(j - warehouse.h_w.1 + 1, j + 1);
-                                        warehouse.map.swap(j - warehouse.h_w.1 + 2, j + 2);
-                                    }
-
-                                    warehouse.map.swap(j - k, j - k - warehouse.h_w.1);
-                                    if warehouse.map[j - k] == '[' {
-                                        warehouse.map.swap(j - k + 1, j - k - warehouse.h_w.1 + 1);
-                                    } else if warehouse.map[j - k] == ']' {
-                                        warehouse.map.swap(j - k - 1, j - k - warehouse.h_w.1 - 1);
-                                    }
-                                    k += warehouse.h_w.1
-                                }
-
-                                warehouse.robot = (l, l / warehouse.h_w.1, l % warehouse.h_w.1)
-                            }
-                            _ => println!("Unexpected map item {} at {n_i}", warehouse.map[n_i])
-                        }
-                    }
-                    _ => println!("Unexpected map item {} at {n_i}", warehouse.map[n_i])
-                }
             }
+            // The logic for left and right is nearly the same as part 1.
             '<' => {
                 let n_i: usize = warehouse.robot.0 - 1;
                 match warehouse.map[n_i] {
@@ -403,9 +359,9 @@ fn part2(input: &InputData) {
 
     traverse_part2(&mut warehouse);
 
-}
+}*/
 
 pub fn wrapper(input: InputData) {
     part1(&input);
-    part2(&input);
+    //part2(&input);
 }
