@@ -73,7 +73,6 @@ fn decode_execute(instruction: u16, system: &mut System) -> &mut System {
         0x00 => { // adv
             let numerator: u128 = system.registers[0];
             let denominator: u128 = 2u128.pow(combo_operand(operand, system));
-            
             // Integer division.
             system.registers[0] = numerator / denominator;
         }
@@ -121,6 +120,35 @@ fn decode_execute(instruction: u16, system: &mut System) -> &mut System {
     system
 }
 
+// I struggled with this. I was on the right track actually I was just getting bogged down in details.
+// This video really helped https://www.youtube.com/watch?v=y-UPxMAh2N8 to work out a proper procedure for reverse engineering.
+// I worked from the pseudocode I already had and did the first few steps by hand, then turned it into a function for finding a quine.
+fn find_quine(program: &Vec<u8>, answer: u128) -> Option<u128> {
+    if program.len() == 0 { return Some(answer) } // If the whole program has been explored, return answer.
+
+    for x in 0..8 { // Loop through all possible values of A.
+        // This is now mostly my input program.
+        let mut a: u128 = (answer << 3) + x;
+        let mut b: u128 = x ^ 1;
+        let c: u128 = a >> b;
+        a = a >> 3;
+        b = b ^ 4;
+        b = b ^ c;
+        b = b % 8;
+        if b as u8 == *program.last().unwrap() { // If the result fits, we get the next result.
+            let next: Option<u128> =  find_quine(&program[..program.len() - 1].to_vec(), (answer << 3) + x);
+            if next.is_none() { // If we find no result, then we continue to the next branch, if any.
+                continue
+            }
+            else {
+                return next // If we find one, we return.
+            }
+        }
+    }
+
+    None // Return none if all paths are exhausted.
+}
+
 pub fn wrapper(input: InputData) {
     print!("\x1B[2J\x1B[1;1H");
     println!("Situation critical!");
@@ -139,5 +167,9 @@ pub fn wrapper(input: InputData) {
 
     println!();
 
-    // I can't work out part 2. I've tried to reverse engineer the program and I can understan dit, but I see now way of that helpin gme.
+    println!("Finding quine...");
+
+    let program: Vec<u8> = initialize(&input).memory;
+    let quine: Option<u128> = find_quine(&program, 0);
+    println!("Quine: {quine:?}")
 }
