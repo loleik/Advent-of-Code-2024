@@ -12,15 +12,31 @@ My solutions for [Advent of Code 2024](https://adventofcode.com/2024) written in
 Input is expected within the directory `input` relative to the root of the crate, with file names such as
 `input_day01`, `input_day10`, etc.
 
-## Missing
-### Part 2
-+ Day 8
-+ Day 15
-+ Day 16
-+ Day 22
-+ Day 23
-
-### Both Parts
-+ Day 10
-+ Day 20
-+ Day 21
+## Stars
+| Day | Part 1 | Part 2 |
+| :-- | :----: | :----: |
+| 1   |   ★    |   ★    |
+| 2   |   ★    |   ★    |
+| 3   |   ★    |   ★    |
+| 4   |   ★    |   ★    |
+| 5   |   ★    |   ★    |
+| 6   |   ★    |   ★    |
+| 7   |   ★    |   ★    |
+| 8   |   ★    |   ☆    |
+| 9   |   ★    |   ★    |
+| 10  |   ☆    |   ☆    |
+| 11  |   ★    |   ★    |
+| 12  |   ★    |   ★    |
+| 13  |   ★    |   ★    |
+| 14  |   ★    |   ★    |
+| 15  |   ★    |   ☆    |
+| 16  |   ★    |   ☆    |
+| 17  |   ★    |   ★    |
+| 18  |   ★    |   ★    |
+| 19  |   ★    |   ★    |
+| 20  |   ☆    |   ☆    |
+| 21  |   ☆    |   ☆    |
+| 22  |   ★    |   ☆    |
+| 23  |   ★    |   ☆    |
+| 24  |        |        |
+| 25  |        |        |
