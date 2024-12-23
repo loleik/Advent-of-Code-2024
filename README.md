@@ -12,7 +12,7 @@ My solutions for [Advent of Code 2024](https://adventofcode.com/2024) written in
 Input is expected within the directory `input` relative to the root of the crate, with file names such as
 `input_day01`, `input_day10`, etc.
 
-## Stars
+## Stars 35/50
 | Day | Part 1 | Part 2 |
 | :-- | :----: | :----: |
 | 1   |   ★    |   ★    |
