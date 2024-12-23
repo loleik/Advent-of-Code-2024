@@ -51,6 +51,8 @@ fn part_2(input: &InputData) {
     
     let mut counts: HashMap<Vec<i8>, i8> = HashMap::new();
 
+    let test: Vec<i8> = vec![-2i8,1i8,-1i8,3i8];
+
     for i in 0..values.len() {
         prices.push((values[i] % 10) as i8);
         let mut last_4: Vec<i8> = Vec::new();
@@ -58,6 +60,10 @@ fn part_2(input: &InputData) {
         for j in 0..2000 {
             values[i] = prng(values[i]);
             prices.push((values[i] % 10) as i8);
+
+            if last_4 == test {
+                println!("{} : {}", values[i], prices[j]);
+            }
 
             if j > 4 {
                 counts.entry(last_4.clone())
@@ -70,8 +76,6 @@ fn part_2(input: &InputData) {
             }
         }
     }
-
-    let test: Vec<i8> = vec![-2i8,1i8,-1i8,3i8];
 
     println!("[-2, 1, -1, 3] : {:?}", counts.get(&test));
 }

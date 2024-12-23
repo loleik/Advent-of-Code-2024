@@ -7,7 +7,7 @@ use solutions::{day01, day02, day03, day04, day05,
                 day06, day07, day08, day09, day10, 
                 day11, day12, day13, day14, day15,
                 day16, day17, day18, day19, day20,
-                day22,
+                day22, day23,
             };
 
 #[derive(Parser, Debug)]
@@ -84,6 +84,9 @@ fn main() {
         }
         22 => {
             day22::wrapper(parse_to_vec("input/input_day22"));
+        }
+        23 => {
+            day23::wrapper(parse_to_vec("input/input_day23"));
         }
         _ => println!("Invalid day: {}", args.day),
     }
