@@ -38,5 +38,5 @@ Input is expected within the directory `input` relative to the root of the crate
 | 21  |   ☆    |   ☆    |
 | 22  |   ★    |   ☆    |
 | 23  |   ★    |   ☆    |
-| 24  |        |        |
+| 24  |   ☆    |   ☆    |
 | 25  |        |        |
